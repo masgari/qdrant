@@ -4,12 +4,12 @@ use serde::Serialize;
 use storage::rbac::Access;
 #[cfg(all(
     not(target_env = "msvc"),
-    any(target_arch = "x86_64", target_arch = "aarch64")
+    target_arch = "x86_64"
 ))]
 use storage::rbac::AccessRequirements;
 #[cfg(all(
     not(target_env = "msvc"),
-    any(target_arch = "x86_64", target_arch = "aarch64")
+    target_arch = "x86_64"
 ))]
 use tikv_jemalloc_ctl::{epoch, stats};
 
@@ -31,7 +31,7 @@ pub struct MemoryTelemetry {
 impl MemoryTelemetry {
     #[cfg(all(
         not(target_env = "msvc"),
-        any(target_arch = "x86_64", target_arch = "aarch64")
+        target_arch = "x86_64"
     ))]
     pub fn collect(access: &Access) -> Option<MemoryTelemetry> {
         let required_access = AccessRequirements::new().whole();
@@ -47,6 +47,12 @@ impl MemoryTelemetry {
             log::info!("Failed to advance Jemalloc stats epoch");
             None
         }
+    }
+
+    #[cfg(target_arch = "aarch64")]
+    pub fn collect(_access: &Access) -> Option<MemoryTelemetry> {
+        // Memory telemetry disabled on ARM64 due to jemalloc compatibility issues
+        None
     }
 
     #[cfg(target_env = "msvc")]
